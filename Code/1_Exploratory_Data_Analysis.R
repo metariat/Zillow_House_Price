@@ -158,7 +158,10 @@ qmplot(lon, lat, data = df, colour = I('red'), maptype = "watercolor", zoom = 12
 #---                     Feature Engineering                               ---#
 #-----------------------------------------------------------------------------#
 
+#---------------------
 #-- Altitude
+#---------------------
+
 #'''Using google API is paying: https://developers.google.com/maps/documentation/elevation/start?hl=fr
 #'''Alternative: using the geonames package
 library(geonames)
@@ -172,5 +175,21 @@ properties$altitude1 = mapply(GetAl, long = properties$longitude, lat = properti
 
 
 
-
+#---------------------
+#-- Calculate the distance to the beach
+#---------------------
+#'''Idea: the beach borders' longitude,altitude can be approximately estimated by the informations
+#''' of the most left house for each range of longitude
+properties$long.percentile = cut(properties$longitude, 
+                                  unique(quantile(properties$longitude, probs=0:1000/1000, na.rm = T)), 
+                                  include.lowest=TRUE, 
+                                  labels=FALSE)
+#Calculate the min in each percentile group
+properties[, lat.min := min(latitude), by = long.percentile]
+#check
+test = data.frame(unique(properties[, c("longitude", "lat.min")]))
+test = test[sample(1000), ]
+qmplot(longitude, lat.min, data = test, colour = I('red'), maptype = "watercolor", zoom = 9)
+#still some unexpected point, we can reduce the number of percentile to eliminate those point.
+#but the trade-off will be that the distance would be less accurate for other points
 
