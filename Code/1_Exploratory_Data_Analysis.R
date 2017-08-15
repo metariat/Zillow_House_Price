@@ -4,11 +4,12 @@
 options( warn = -1 )
 library(data.table)
 library(dplyr)
-library(lubridate)
+library(lubridate) #working with date
 library(ggplot2)
 library(tidyr)
-library(ggmap)
-library(geonames)
+library(ggmap) #plot google map
+library(geonames) #API for calculating the altitude
+library(geosphere) #calculate geospatial distance between two points
 
 #-----------------------------------------------------------------------------#
 #---                     Data loadings                                     ---#
@@ -192,4 +193,10 @@ test = test[sample(1000), ]
 qmplot(longitude, lat.min, data = test, colour = I('red'), maptype = "watercolor", zoom = 9)
 #still some unexpected point, we can reduce the number of percentile to eliminate those point.
 #but the trade-off will be that the distance would be less accurate for other points
+
+#Calculate the distance
+for (i in 1:nrow(properties)){
+  properties$water.distance[i] = distHaversine(c(properties$longitude[i], properties$latitude[i]), 
+                                            c(properties$longitude[i], properties$lat.min[i]))
+}
 
