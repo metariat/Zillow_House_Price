@@ -195,8 +195,6 @@ qmplot(longitude, lat.min, data = test, colour = I('red'), maptype = "watercolor
 #but the trade-off will be that the distance would be less accurate for other points
 
 #Calculate the distance
-for (i in 1:nrow(properties)){
-  properties$water.distance[i] = distHaversine(c(properties$longitude[i], properties$latitude[i]), 
-                                            c(properties$longitude[i], properties$lat.min[i]))
-}
+properties = properties %>% rowwise() %>% 
+                mutate(water.distance = distHaversine(c(longitude, latitude), c(longitude, lat.min)))
 
