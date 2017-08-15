@@ -161,5 +161,16 @@ qmplot(lon, lat, data = df, colour = I('red'), maptype = "watercolor", zoom = 12
 #-- Altitude
 #'''Using google API is paying: https://developers.google.com/maps/documentation/elevation/start?hl=fr
 #'''Alternative: using the geonames package
+library(geonames)
+options(geonamesUsername="quang")
+#Using the srtm3 digital elevation model:
+#Attention: hourly limit of 2000 credits
+GetAl = function(lat, long){
+  return(GNsrtm3(lat, long)$srtm3)
+}
+properties$altitude1 = mapply(GetAl, long = properties$longitude, lat = properties$latitude)
+
+
+
 
 
