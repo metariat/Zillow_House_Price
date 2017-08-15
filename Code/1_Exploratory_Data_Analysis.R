@@ -159,14 +159,7 @@ qmplot(lon, lat, data = df, colour = I('red'), maptype = "watercolor", zoom = 12
 #-----------------------------------------------------------------------------#
 
 #-- Altitude
-#'''Using google API: https://developers.google.com/maps/documentation/elevation/start?hl=fr
-api.key = 'AIzaSyAgxOCwrMJcBh9at4g-4qXOz_kbH9l77kU'
-url1 = 'https://maps.googleapis.com/maps/api/elevation/json?locations='
-url2 = '&key='
-properties$altitude = rep(0, nrow(properties))
-for (i in 1:nrow(properties)){
-  url = paste0(url1, properties$latitude[i], ",", properties$longitude[i], url2, api.key)
-  properties$altitude[i] = fromJSON(paste(readLines(url), collapse=""))$results[[1]]$elevation
-}
-unique(properties$altitude)
+#'''Using google API is paying: https://developers.google.com/maps/documentation/elevation/start?hl=fr
+#'''Alternative: using the geonames package
+
 
