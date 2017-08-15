@@ -7,7 +7,8 @@ library(dplyr)
 library(lubridate)
 library(ggplot2)
 library(tidyr)
-
+library(ggmap)
+library(geonames)
 
 #-----------------------------------------------------------------------------#
 #---                     Data loadings                                     ---#
@@ -15,9 +16,15 @@ library(tidyr)
 
 
 #Read the data
-transactions = fread("C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price/Data/train_2016_v2.csv")
-properties = fread("C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price/Data/properties_2016.csv")
-sample.submission = fread("C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price/Data/sample_submission.csv")
+transactions = fread("C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/train_2016_v2.csv")
+properties = fread("C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/properties_2016.csv")
+sample.submission = fread("C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/sample_submission.csv")
+
+#Formatting the data
+transactions$transactiondate = as.Date(transactions$transactiondate, "%Y-%m-%d")
+properties$longitude = properties$longitude / 1e06
+properties$latitude = properties$latitude / 1e06
+
 
 #renaming the columns
 properties <- properties %>% rename(
@@ -78,8 +85,6 @@ transactions <- transactions %>% rename(
   date = transactiondate
 )
 
-#Formatting the data
-transactions$date = as.Date(transactions$date, "%Y-%m-%d")
 
 
 #-----------------------------------------------------------------------------#
@@ -124,22 +129,44 @@ colnames(missing.values) = colnames(properties)
 
 missing.values <- gather(missing.values, key="feature", value="missing_pct")
 missing.values %>% 
-  ggplot(aes(x=reorder(feature,-missing_pct),y=missing_pct)) +
-  geom_bar(stat="identity",fill="red")+
+  ggplot(aes(x=reorder(feature,missing_pct),y=missing_pct)) +
+  geom_bar(stat="identity",fill="red") +
   coord_flip()+theme_bw()
 
-gf
+#''' A lot of variable has high level of missing value, around 100%. We could drop those 
+#''' variables at the first tentative, then if the results are not satisfying, we come back
 
 
 
+#'''where are the houses?
 
+test = properties[sample(500), ]
+df = data.frame(lon = test$longitude, lat = test$latitude)
 
-
-
+qmplot(lon, lat, data = df, colour = I('red'), maptype = "watercolor", zoom = 12)
+#''' Ideas for feature engineering: 
+#'''     - Calculate the distance to the beach
+#'''     - Calculate the altitude of each point
+#'''     - calculate the distance to the forest
+#'''     - Those two features should be very important
+#''' Remark & take away: some houses are situated on an island near by, 
+#'''     thus need a special treatment
 
 
 
 #-----------------------------------------------------------------------------#
 #---                     Feature Engineering                               ---#
 #-----------------------------------------------------------------------------#
+
+#-- Altitude
+#'''Using google API: https://developers.google.com/maps/documentation/elevation/start?hl=fr
+api.key = 'AIzaSyAgxOCwrMJcBh9at4g-4qXOz_kbH9l77kU'
+url1 = 'https://maps.googleapis.com/maps/api/elevation/json?locations='
+url2 = '&key='
+properties$altitude = rep(0, nrow(properties))
+for (i in 1:nrow(properties)){
+  url = paste0(url1, properties$latitude[i], ",", properties$longitude[i], url2, api.key)
+  properties$altitude[i] = fromJSON(paste(readLines(url), collapse=""))$results[[1]]$elevation
+}
+unique(properties$altitude)
 
