@@ -16,5 +16,17 @@ GetAl = function(lat, long){
 df1 = properties[1:1000000, ]
 
 df1$altitude = mapply(GetAl, long = df1$longitude, lat = df1$latitude)
-fwrite(df1[, c("id.parcel", "altitude")], "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price/Excel files")
+fwrite(df1[, c("id.parcel", "altitude")], 
+       "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price/Excel files/altitude_df1.csv")
+
+df2 = properties[1000001:2000000, ]
+df2$altitude = mapply(GetAl, long = df2$longitude, lat = df2$latitude)
+fwrite(df2[, c("id.parcel", "altitude")], 
+       "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price/Excel files/altitude_df2.csv")
+
+df3 = properties[2000001:nrow(properties), ]
+df3$altitude = mapply(GetAl, long = df3$longitude, lat = df3$latitude)
+fwrite(df3[, c("id.parcel", "altitude")], 
+       "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price/Excel files/altitude_df3.csv")
+
 
