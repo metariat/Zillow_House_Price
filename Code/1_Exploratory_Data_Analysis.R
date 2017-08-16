@@ -141,7 +141,7 @@ missing.values %>%
 
 #'''where are the houses?
 
-test = properties[sample(500), ]
+test = properties[sample(2000), ]
 df = data.frame(lon = test$longitude, lat = test$latitude)
 
 qmplot(lon, lat, data = df, colour = I('red'), maptype = "watercolor", zoom = 12)
@@ -165,15 +165,7 @@ qmplot(lon, lat, data = df, colour = I('red'), maptype = "watercolor", zoom = 12
 
 #'''Using google API is paying: https://developers.google.com/maps/documentation/elevation/start?hl=fr
 #'''Alternative: using the geonames package
-library(geonames)
-options(geonamesUsername="quang")
-#Using the srtm3 digital elevation model:
-#Attention: hourly limit of 2000 credits
-GetAl = function(lat, long){
-  return(GNsrtm3(lat, long)$srtm3)
-}
-properties$altitude1 = mapply(GetAl, long = properties$longitude, lat = properties$latitude)
-
+#Using the second file
 
 
 #---------------------
@@ -182,19 +174,46 @@ properties$altitude1 = mapply(GetAl, long = properties$longitude, lat = properti
 #'''Idea: the beach borders' longitude,altitude can be approximately estimated by the informations
 #''' of the most left house for each range of longitude
 properties$long.percentile = cut(properties$longitude, 
-                                  unique(quantile(properties$longitude, probs=0:1000/1000, na.rm = T)), 
+                                  seq(from = min(properties$longitude, na.rm = T), 
+                                      to = max(properties$longitude, na.rm = T),
+                                      length.out = 1000), 
                                   include.lowest=TRUE, 
                                   labels=FALSE)
 #Calculate the min in each percentile group
-properties[, lat.min := min(latitude), by = long.percentile]
-#check
-test = data.frame(unique(properties[, c("longitude", "lat.min")]))
-test = test[sample(1000), ]
-qmplot(longitude, lat.min, data = test, colour = I('red'), maptype = "watercolor", zoom = 9)
-#still some unexpected point, we can reduce the number of percentile to eliminate those point.
-#but the trade-off will be that the distance would be less accurate for other points
+properties[, lat.beach := min(latitude), by = as.factor(long.percentile)]
+#check 
+test = data.frame(unique(properties[, c("lat.beach", "longitude")]))
+qmplot(x = longitude, y = lat.beach, data = test, colour = I('red'), maptype = "watercolor", zoom = 9, margins = T)
+#some points are problematic and need to be removed
+
+test1 = test[test$lat.beach < 33.806672 | test$lat.beach > 33.928966, ] 
+qmplot(x = longitude, y = lat.beach, data = test1, colour = I('red'), maptype = "watercolor", zoom = 9, margins = T)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #Calculate the distance
 properties = properties %>% rowwise() %>% 
                 mutate(water.distance = distHaversine(c(longitude, latitude), c(longitude, lat.min)))
+
+
+
+
+
+
+
 
