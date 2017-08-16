@@ -3,7 +3,7 @@ The pipeline of the workflow can be found at:
 
 https://github.com/metariat/Zillow_House_Price/blob/master/Presentation/Kaggle%20Zillow%20Price.pptx
 
-Some remark before the modelisation:
+Some remarks before the modelisation:
   - Check the sknewness of the target variable: 1-> log-transform it
   - Check the dictionary, note that perhaps for some variable, NA means something.
   - Check if some numerical variables are actually categorical
