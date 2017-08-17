@@ -1,3 +1,7 @@
+#'''Using google API is paying: https://developers.google.com/maps/documentation/elevation/start?hl=fr
+#'''Alternative: using the geonames package
+#Using the second file
+
 library(geonames)
 options(geonamesUsername="quang")
 library(data.table)
