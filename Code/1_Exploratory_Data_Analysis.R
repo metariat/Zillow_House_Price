@@ -1,7 +1,7 @@
 #-----------------------------------------------------------------------------#
 #---                     Package loadings                                  ---#
 #-----------------------------------------------------------------------------#
-options( warn = -1 )
+options(warn = -1 )
 library(data.table)
 library(dplyr)
 library(lubridate) #working with date
@@ -200,8 +200,13 @@ cppFunction('NumericVector pdistC(NumericVector lonx, NumericVector latx, Numeri
 }')
 
 #Calculate the distance
+water.coordinates = water.coordinates[!is.na(water.coordinates$lat.beach)]
+time1 = Sys.time()
 properties$water.distance = pdistC(properties$longitude, properties$latitude,
                                     water.coordinates$long.beach, water.coordinates$lat.beach)
+time2 = Sys.time()
+
+
 
 fwrite(properties[, c("id.parcel", "water.distance")], "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price/Excel files/water_distance.csv")
 sum(is.na(properties$water.distance))
