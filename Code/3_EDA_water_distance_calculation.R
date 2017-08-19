@@ -47,3 +47,41 @@ app2 <- app2 %>% rename(
 test = rbind(app1, app2)
 qmplot(x = long.beach, y = lat.beach, data = test, colour = I('red'), maptype = "watercolor", zoom = 7, margins = T)
 fwrite(test, "C:/Quang/Kaggle/Zillow_House_Price-master/Zillow_House_Price-master/Graphics/long_lat_of_the_beach.csv")
+
+
+
+
+
+#Now we need to calculate the distance between each house to all the point at the beach
+#and take the min, it means 3e6*1.2e6 calculations, R is too slow to do that, 
+#so we can try a C++ code, complied via Rcpp package
+
+library(Rcpp)
+cppFunction('NumericVector pdistC(NumericVector lonx, NumericVector latx, NumericVector lony, NumericVector laty) {
+            int nx = lonx.size();
+            int ny = lony.size();
+            NumericVector out(nx);
+            
+            for (int i = 0; i < nx; ++i){
+            out[i] = 9999;
+            }
+            
+            for (int i = 0; i < nx; ++i){
+            for (int j = 0; j < ny; ++j){
+            out[i] = std::min(sqrt(pow(lonx[i]-lony[j], 2) + pow(latx[i]-laty[j], 2)), out[i]);
+            }
+            }
+            return out;
+            }')
+
+#Calculate the distance
+water.coordinates = water.coordinates[!is.na(water.coordinates$lat.beach)]
+time1 = Sys.time()
+properties$water.distance = pdistC(properties$longitude, properties$latitude,
+                                   water.coordinates$long.beach, water.coordinates$lat.beach)
+time2 = Sys.time()
+hist((properties$water.distance))
+sum(is.na(properties$water.distance))
+
+fwrite(properties[, c("id.parcel", "water.distance")], "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price/Excel files/water_distance.csv")
+
