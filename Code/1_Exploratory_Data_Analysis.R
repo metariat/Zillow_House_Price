@@ -10,6 +10,12 @@ library(tidyr)
 library(ggmap) #plot google map
 library(geonames) #API for calculating the altitude
 library(geosphere) #calculate geospatial distance between two points
+library(randomForest) #For the first benchmark model
+library(glmnet) #penalized regression models
+library(xgboost) #Gradient Boosting
+library(Rcpp) #C++ interface
+library(gridExtra) #side by side ggplot
+library(stringr) #regrex
 
 #-----------------------------------------------------------------------------#
 #---                     Data loadings                                     ---#
@@ -25,6 +31,56 @@ sample.submission = fread("C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_
 transactions$transactiondate = as.Date(transactions$transactiondate, "%Y-%m-%d")
 properties$longitude = properties$longitude / 1e06
 properties$latitude = properties$latitude / 1e06
+
+
+#Transforming look-alike continuous variable to categorical variables:
+str(properties)
+cat.var = c("airconditioningtypeid", "architecturalstyletypeid", "buildingclasstypeid",
+            "decktypeid", "heatingorsystemtypeid", "propertylandusetypeid", "regionidcounty",
+            "regionidcity", "regionidzip", "regionidneighborhood", "storytypeid", 
+            "typeconstructiontypeid", "fips")
+
+for (i in cat.var){
+  properties[, eval(i):= as.factor(as.character(get(i)))]
+}
+
+
+#the variable propertylandusetypeid could be very important
+
+#Transforming bad formatting categorical variables
+properties$fireplaceflag = ifelse(properties$fireplaceflag == "true", 1, 0)
+properties[, pooltypeid2 := ifelse(pooltypeid2 == 1, 1, 
+                                   ifelse(poolcnt == 1,0, -1))]
+properties[, pooltypeid7 := ifelse(pooltypeid7 == 1, 1, 
+                                   ifelse(poolcnt ==1, 0, -1))]
+properties[, pooltypeid10 := ifelse(pooltypeid10 == 1, 1, 0)]
+properties[, hashottuborspa := ifelse(hashottuborspa == "true", 1, 0)]
+properties <- properties %>% 
+                mutate(census = as.character(rawcensustractandblock), 
+                       tract.number = str_sub(census,5,11), 
+                       tract.block = str_sub(census,12))
+
+
+
+#Some varialbes in which missing value is not really missing
+
+properties = setDT(properties) # I don't know why but here properties is a data.frame, not data.table
+properties[, airconditioningtypeid := ifelse(is.na(airconditioningtypeid), "-1", 
+                                             as.character(airconditioningtypeid))]
+
+properties[, is.fire.place := ifelse(is.na(fireplacecnt), 0, 1)]
+
+properties[, fireplacecnt := ifelse(is.na(fireplacecnt), 0, fireplacecnt)]
+
+properties[, poolcnt := ifelse(is.na(poolcnt), 0, poolcnt)]
+
+properties[, is.city := ifelse(is.na(regionidcity), 0, 1)]
+
+properties[, decktypeid := ifelse(is.na(decktypeid), "-1", as.character(decktypeid))]
+
+#droping alias variables
+#poolcnt = pooltypeid2 + pooltypeid7
+alias = c("poolcnt", "censustractandblock")
 
 
 #renaming the columns
@@ -88,9 +144,20 @@ transactions <- transactions %>% rename(
 
 
 
+
+
+
+
 #-----------------------------------------------------------------------------#
 #---                     Exploratory Data Analysis                         ---#
 #-----------------------------------------------------------------------------#
+
+
+
+
+
+#---------------------    1.Targer variable
+#---------------------------------------------------
 
 #'''First look at the response variable:
 hist(transactions$logerror, breaks = 1000, xlab = "logerror", ylab = "frequency",
@@ -124,6 +191,16 @@ transactions %>%
 #'''at the same perid as the testing set
 
 
+
+
+
+#---------------------    2.Predictors
+#---------------------------------------------------
+
+
+
+#--------------------- 2.1 Missing value
+
 #'''Missing value
 missing.values <- transpose(data.frame(sapply(properties, function(x) sum(is.na(x))/length(x))))
 colnames(missing.values) = colnames(properties)
@@ -136,6 +213,34 @@ missing.values %>%
 
 #''' A lot of variable has high level of missing value, around 100%. We could drop those 
 #''' variables at the first tentative, then if the results are not satisfying, we come back
+names(properties)
+str(properties)
+
+
+#--------------------- 2.2 Categorical variables
+#Merge transactions and properties data
+data = merge(transactions, properties, by = "id.parcel", all.x = T)
+sum(is.na(data$flag.fireplace)) #check ok
+
+data_summary <- function(x) {
+  mu <- mean(x)
+  sigma1 <- mu-sd(x)
+  sigma2 <- mu+sd(x)
+  return(c(y=mu,ymin=sigma1,ymax=sigma2))
+}
+
+
+
+p1 = ggplot(data, aes(x = as.factor(heating), y = logerror, fill = as.factor(heating))) +
+      geom_violin() +
+      geom_boxplot(width=0.1, fill="white") +
+      scale_colour_continuous(guide = FALSE) +
+      scale_y_continuous(limits = c(-0.2, 0.2))
+p2 = ggplot(data, aes(x = as.factor(heating))) + geom_bar()
+grid.arrange(p1, p2, nrow=2)
+
+
+
 
 
 
@@ -176,6 +281,7 @@ qmplot(lon, lat, data = df, colour = I('red'), maptype = "watercolor", zoom = 12
 #-- Calculate the distance to the beach
 #---------------------
 #Please refer to the code 3_EDA_water_distance_calculation.R
+
 
 
 
