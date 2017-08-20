@@ -34,7 +34,6 @@ properties$latitude = properties$latitude / 1e06
 
 
 #Transforming look-alike continuous variable to categorical variables:
-str(properties)
 cat.var = c("airconditioningtypeid", "architecturalstyletypeid", "buildingclasstypeid",
             "decktypeid", "heatingorsystemtypeid", "propertylandusetypeid", "regionidcounty",
             "regionidcity", "regionidzip", "regionidneighborhood", "storytypeid", 
@@ -43,9 +42,6 @@ cat.var = c("airconditioningtypeid", "architecturalstyletypeid", "buildingclasst
 for (i in cat.var){
   properties[, eval(i):= as.factor(as.character(get(i)))]
 }
-
-
-#the variable propertylandusetypeid could be very important
 
 #Transforming bad formatting categorical variables
 properties$fireplaceflag = ifelse(properties$fireplaceflag == "true", 1, 0)
@@ -61,10 +57,9 @@ properties <- properties %>%
                        tract.block = str_sub(census,12))
 
 
-
 #Some varialbes in which missing value is not really missing
 
-properties = setDT(properties) # I don't know why but here properties is a data.frame, not data.table
+properties = setDT(properties) 
 properties[, airconditioningtypeid := ifelse(is.na(airconditioningtypeid), "-1", 
                                              as.character(airconditioningtypeid))]
 
@@ -77,10 +72,6 @@ properties[, poolcnt := ifelse(is.na(poolcnt), 0, poolcnt)]
 properties[, is.city := ifelse(is.na(regionidcity), 0, 1)]
 
 properties[, decktypeid := ifelse(is.na(decktypeid), "-1", as.character(decktypeid))]
-
-#droping alias variables
-#poolcnt = pooltypeid2 + pooltypeid7
-alias = c("poolcnt", "censustractandblock")
 
 
 #renaming the columns
@@ -213,8 +204,10 @@ missing.values %>%
 
 #''' A lot of variable has high level of missing value, around 100%. We could drop those 
 #''' variables at the first tentative, then if the results are not satisfying, we come back
-names(properties)
-str(properties)
+
+
+
+
 
 
 #--------------------- 2.2 Categorical variables
@@ -222,25 +215,40 @@ str(properties)
 data = merge(transactions, properties, by = "id.parcel", all.x = T)
 sum(is.na(data$flag.fireplace)) #check ok
 
-data_summary <- function(x) {
-  mu <- mean(x)
-  sigma1 <- mu-sd(x)
-  sigma2 <- mu+sd(x)
-  return(c(y=mu,ymin=sigma1,ymax=sigma2))
+
+cat.var = c("aircon",
+            "deck",
+            "region.city",
+            "material",
+            "architectural.style",
+            "heating",
+            "region.zip",
+            "framing",
+            "zoning.landuse",
+            "region.neighbor",
+            "region.county",
+            "story")
+
+
+for (i in cat.var){
+  data[, eval(i):= as.factor(as.character(get(i)))]
 }
 
-
-
-p1 = ggplot(data, aes(x = as.factor(heating), y = logerror, fill = as.factor(heating))) +
+for (i in names(Filter(is.factor, data))){
+p1 = ggplot(data, aes(x = get(i), y = logerror, fill = get(i))) +
       geom_violin() +
       geom_boxplot(width=0.1, fill="white") +
       scale_colour_continuous(guide = FALSE) +
-      scale_y_continuous(limits = c(-0.2, 0.2))
-p2 = ggplot(data, aes(x = as.factor(heating))) + geom_bar()
+      scale_y_continuous(limits = c(-0.2, 0.2)) +
+      ggtitle(paste0("Plot of ", i))
+p2 = ggplot(data, aes(x = get(i))) + geom_bar()
+jpeg(file = paste0("C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price/Graphics/EDA_", i, ".png")
+     , width = 1000, height = 682)
 grid.arrange(p1, p2, nrow=2)
+dev.off()
+}
 
-
-
+#Wow, their model is very good
 
 
 
@@ -257,30 +265,6 @@ qmplot(lon, lat, data = df, colour = I('red'), maptype = "watercolor", zoom = 12
 #'''     - Those two features should be very important
 #''' Remark & take away: some houses are situated on an island near by, 
 #'''     thus need a special treatment
-
-
-
-
-
-
-
-
-
-
-
-#-----------------------------------------------------------------------------#
-#---                     Feature Engineering                               ---#
-#-----------------------------------------------------------------------------#
-
-#---------------------
-#-- Altitude
-#---------------------
-#Please refer to the code 2_altitude_calculation.R
-
-#---------------------
-#-- Calculate the distance to the beach
-#---------------------
-#Please refer to the code 3_EDA_water_distance_calculation.R
 
 
 
