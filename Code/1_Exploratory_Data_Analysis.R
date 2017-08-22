@@ -73,6 +73,13 @@ properties[, is.city := ifelse(is.na(regionidcity), 0, 1)]
 
 properties[, decktypeid := ifelse(is.na(decktypeid), "-1", as.character(decktypeid))]
 
+properties[, storytypeid := ifelse(is.na(storytypeid), "-1", as.character(storytypeid))] #type of house (if contain "sous-sol", "grenier", etc.)
+
+yardbuildingsqft26.NA.type = ifelse(is.na(properties$yardbuildingsqft26 ), -1, 0) # -1: NA, 0: having value 
+properties[, yardbuildingsqft26 := ifelse(is.na(yardbuildingsqft26), mean(yardbuildingsqft26, na.rm = TRUE), yardbuildingsqft26)] #surface of the storage in the yard
+
+yardbuildingsqft17.NA.type = ifelse(is.na(properties$yardbuildingsqft17 ), -1, 0) # -1: NA, 0: having value
+properties[, yardbuildingsqft17 := ifelse(is.na(yardbuildingsqft17), mean(yardbuildingsqft17, na.rm = TRUE), yardbuildingsqft17)] #surface of the patio in the yard
 
 #renaming the columns
 properties <- properties %>% rename(
