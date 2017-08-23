@@ -116,3 +116,6 @@ properties[, propertycountylandusecode := ifelse(is.na(propertycountylandusecode
 properties[, poolcnt.NA.type := ifelse(is.na( poolcnt ), -1, 0)] # -1: NA, 0: having value 
 properties[,  poolcnt := ifelse(is.na( poolcnt), median( poolcnt, na.rm = TRUE),  poolcnt)] #   Number of pools on the lot (if any)
 
+
+
+
