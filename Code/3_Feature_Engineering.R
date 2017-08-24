@@ -55,7 +55,7 @@ properties[, N.value.ratio := taxvaluedollarcnt / taxamount]
 properties[, N.tax.score := taxvaluedollarcnt * taxamount]
 
 #Length of time since unpaid taxes
-df_train[, N.life := 2018 - taxdelinquencyyear]
+properties[, N.life.tax := 2018 - taxdelinquencyyear]
 
 
 
@@ -117,9 +117,6 @@ properties[, buildingclasstypeid := ifelse(is.na(buildingclasstypeid), 0, 1)]
 properties[, heatingorsystemtypeid := ifelse(heatingorsystemtypeid %in% c("1", "10", "11", "12", "13", "14", "18", "20", "19", "21"), 
                                "2", as.character(heatingorsystemtypeid))]
 properties[, heatingorsystemtypeid := ifelse(is.na(heatingorsystemtypeid), "-1", as.character(heatingorsystemtypeid))]
-properties[, propertylandusetypeid := ifelse(propertylandusetypeid %in% c("260", "263"))]
-
-
 
 #There's 25 different property uses - let's compress them down to 4 categories
 properties[, N.prop.type := 
@@ -140,7 +137,8 @@ properties[, N.prop.type :=
 #Please refer to the code 3_EDA_water_distance_calculation.R
 
 
-water.distance = fread("C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price/Excel files/water_distance.csv")
-properties = merge(properties, water.distance, by = "id.parcel", all.x = T)
+water.distance = fread("C:/Quang/Kaggle/Zillow_House_Price/Excel files/water_distance.csv")
+properties = merge(properties, water.distance, by.x = "parcelid", by.y = "id.parcel", all.x = T)
 
-
+fwrite(properties, "C:/Quang/Kaggle/Zillow_House_Price_Data/properties_v2.csv")
+saveRDS(properties, "C:/Quang/Kaggle/Zillow_House_Price_Data/properties_v2.RDS")
