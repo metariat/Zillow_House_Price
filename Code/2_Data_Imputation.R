@@ -119,3 +119,169 @@ properties[,  poolcnt := ifelse(is.na( poolcnt), median( poolcnt, na.rm = TRUE),
 
 
 
+
+
+####### Edit from Tuan Anh 
+
+#census: created from 'rawcensustractandblock'(Census tract and block ID combined - also contains blockgroup assignment by extension)
+class(properties$census)
+summary(properties$census)
+sum(is.na(properties$census))
+
+properties[, census := ifelse(is.na(properties$census), "-1", properties$census)]
+
+#latitude
+class(properties$latitude) #integer
+summary(properties$latitude) #11437 NA
+#properties[, latitude.NA.type := ifelse(is.na(latitude ), -1, 0)] # -1: NA, 0: having value 
+properties[, latitude := ifelse(is.na(latitude), mean(latitude, na.rm = TRUE), latitude)]
+
+#'propertylandusetypeid' : Type of land use the property is zoned for 
+class(properties$propertylandusetypeid) #integer
+summary(properties$propertylandusetypeid) #11437 NA
+#properties[, propertylandusetypeid.NA.type := ifelse(is.na(propertylandusetypeid), -1, 0)] # -1: NA, 0: having value 
+properties[, propertylandusetypeid := ifelse(is.na(propertylandusetypeid), "-1", propertylandusetypeid)]
+
+#tract.block: created from 'rawcensustractandblock'
+class(properties$tract.block) #character
+summary(properties$tract.block) 
+#properties[, tract.block.NA.type := ifelse(is.na(tract.block ), -1, 0)] # -1: NA, 0: having value 
+properties[, tract.block := ifelse(is.na(tract.block), "999999999", as.character(tract.block))]
+
+#tract.number: created from 'rawcensustractandblock'
+class(properties$tract.number) #character
+summary(properties$tract.number) 
+#properties[, tract.number.NA.type := ifelse(is.na(tract.number), -1, 0)] # -1: NA, 0: having value 
+properties[, tract.number := ifelse(is.na(tract.number), "999999999", as.character(tract.number))]
+
+
+
+#taxamount: The total property tax assessed for that assessment year => NA = mean
+class(properties$taxamount) #numeric
+summary(properties$taxamount) #31250 NA
+#properties[, taxamount.NA.type := ifelse(is.na(taxamount), -1, 0)] # -1: NA, 0: having value 
+properties[, taxamount := ifelse(is.na(taxamount), mean(taxamount, na.rm = TRUE), taxamount)]
+
+#'structuretaxvaluedollarcnt': The assessed value of the built structure on the parcel => NA = mean
+class(properties$structuretaxvaluedollarcnt) #numeric
+summary(properties$structuretaxvaluedollarcnt) #54982 NA
+#properties[, structuretaxvaluedollarcnt.NA.type := ifelse(is.na(structuretaxvaluedollarcnt), -1, 0)] # -1: NA, 0: having value 
+properties[, structuretaxvaluedollarcnt := ifelse(is.na(structuretaxvaluedollarcnt), mean(structuretaxvaluedollarcnt, na.rm = TRUE), structuretaxvaluedollarcnt)]
+
+
+#landtaxvaluedollarcnt: The assessed value of the land area of the parcel => NA = mean
+class(properties$landtaxvaluedollarcnt) #numeric
+summary(properties$landtaxvaluedollarcnt) #67733 NA
+#properties[, landtaxvaluedollarcnt.NA.type := ifelse(is.na(landtaxvaluedollarcnt), -1, 0)] # -1: NA, 0: having value 
+properties[, landtaxvaluedollarcnt := ifelse(is.na(landtaxvaluedollarcnt), mean(landtaxvaluedollarcnt, na.rm = TRUE), landtaxvaluedollarcnt)]
+
+#yearbuilt > NA = median (1963)
+class(properties$yearbuilt) #numeric
+summary(properties$yearbuilt) #59928 NA
+#properties[, yearbuilt.NA.type := ifelse(is.na(yearbuilt), -1, 0)] # -1: NA, 0: having value 
+properties[, yearbuilt := ifelse(is.na(yearbuilt), median(yearbuilt, na.rm = TRUE), yearbuilt)]
+
+#calculatedbathnbr:  Number of bathrooms in home including fractional bathroom => NA = median (=2)
+class(properties$calculatedbathnbr) #numeric
+summary(properties$calculatedbathnbr) #128912 NA
+#properties[, calculatedbathnbr.NA.type := ifelse(is.na(calculatedbathnbr), -1, 0)] # -1: NA, 0: having value 
+properties[, calculatedbathnbr := ifelse(is.na(calculatedbathnbr), median(calculatedbathnbr, na.rm = TRUE), calculatedbathnbr)]
+
+
+#bedroom_cnt:  Number of bedrooms in home =>NA = median (=3)
+class(properties$bedroomcnt) #numeric
+summary(properties$bedroomcnt)#11450 NA
+properties[, bedroomcnt.NA.type := ifelse(is.na(bedroomcnt), -1, 0)] # -1: NA, 0: having value 
+properties[, bedroomcnt := ifelse(is.na(bedroomcnt), median(bedroomcnt, na.rm = TRUE), bedroomcnt)]
+
+#roomcnt:   Total number of rooms in the principal residence =>NA = median (=0)
+class(properties$roomcnt) #numeric
+summary(properties$roomcnt) #11475 NA
+#properties[, roomcnt.NA.type := ifelse(is.na(roomcnt), -1, 0)] # -1: NA, 0: having value 
+properties[, roomcnt := ifelse(is.na(roomcnt), median(roomcnt, na.rm = TRUE), roomcnt)]
+
+
+#lotsizesquarefeet:    Area of the lot in square feet
+class(properties$lotsizesquarefeet) #numeric
+summary(properties$lotsizesquarefeet) #276099 NA
+#properties[, lotsizesquarefeet.NA.type := ifelse(is.na(lotsizesquarefeet), -1, 0)] # -1: NA, 0: having value 
+properties[, lotsizesquarefeet := ifelse(is.na(lotsizesquarefeet), median(lotsizesquarefeet, na.rm = TRUE), lotsizesquarefeet)]
+
+#buildingqualitytypeid :  Overall assessment of condition of the building from best (lowest) to worst (highest) => median
+class(properties$buildingqualitytypeid) #integer
+summary(properties$buildingqualitytypeid) #11437 NA
+#properties[, buildingqualitytypeid.NA.type := ifelse(is.na(buildingqualitytypeid ), -1, 0)] # -1: NA, 0: having value 
+properties[, buildingqualitytypeid := ifelse(is.na(buildingqualitytypeid), median(buildingqualitytypeid, na.rm = TRUE), buildingqualitytypeid)]
+
+
+#regionidneighborhood: Neighborhood in which the property is located => NA = -1
+class(properties$regionidneighborhood) #integer
+summary(properties$regionidneighborhood) #1828815 NA
+#properties[, regionidneighborhood.NA.type := ifelse(is.na(regionidneighborhood ), -1, 0)] # -1: NA, 0: having value 
+properties[, regionidneighborhood := ifelse(is.na(regionidneighborhood), "-1", regionidneighborhood)]
+
+
+#'garagecarcnt': Total number of garages on the lot including an attached garage
+class(properties$garagecarcnt) #integer
+summary(properties$garagecarcnt) #2101950 NA
+#properties[, garagecarcnt.NA.type := ifelse(is.na(garagecarcnt ), -1, 0)] # -1: NA, 0: having value 
+properties[, garagecarcnt := ifelse(is.na(garagecarcnt), median(garagecarcnt, na.rm = TRUE), garagecarcnt)]
+
+#'finishedfloor1squarefeet':  Size of the finished living area on the first (entry) floor of the home => NA = mean
+class(properties$finishedfloor1squarefeet) #integer
+summary(properties$finishedfloor1squarefeet) #2782500 NA
+#properties[, finishedfloor1squarefeet.NA.type := ifelse(is.na(finishedfloor1squarefeet ), -1, 0)] # -1: NA, 0: having value 
+properties[, finishedfloor1squarefeet := ifelse(is.na(finishedfloor1squarefeet), median(finishedfloor1squarefeet, na.rm = TRUE), finishedfloor1squarefeet)]
+
+
+#'finishedsquarefeet15':  Total area => NA = mean
+class(properties$finishedsquarefeet15) #integer
+summary(properties$finishedsquarefeet15) #2794419 NA
+#properties[, finishedsquarefeet15.NA.type := ifelse(is.na(finishedsquarefeet15 ), -1, 0)] # -1: NA, 0: having value 
+properties[, finishedsquarefeet15 := ifelse(is.na(finishedsquarefeet15), median(finishedsquarefeet15, na.rm = TRUE), finishedsquarefeet15)] #  Size of the finished living area on the first (entry) floor of the home
+
+#'finishedsquarefeet6':  Base unfinished and finished area => NA = mean
+class(properties$finishedsquarefeet6) #integer
+summary(properties$finishedsquarefeet6) #2963216 NA
+#properties[, finishedsquarefeet6.NA.type := ifelse(is.na(finishedsquarefeet6 ), -1, 0)] # -1: NA, 0: having value 
+properties[, finishedsquarefeet6 := ifelse(is.na(finishedsquarefeet6), median(finishedsquarefeet6, na.rm = TRUE), finishedsquarefeet6)] 
+
+#'finishedsquarefeet13':  Perimeter  living area
+class(properties$finishedsquarefeet13) #integer
+summary(properties$finishedsquarefeet13) #2963216 NA
+#properties[, finishedsquarefeet13.NA.type := ifelse(is.na(finishedsquarefeet13 ), -1, 0)] # -1: NA, 0: having value 
+properties[, finishedsquarefeet13 := ifelse(is.na(finishedsquarefeet13), median(finishedsquarefeet13, na.rm = TRUE), finishedsquarefeet6)] 
+
+
+#taxdelinquencyyear:    Year for which the unpaid propert taxes were due => NA = median (14 years) 
+class(properties$taxdelinquencyyear) #integer
+summary(properties$taxdelinquencyyear) #2928753 NA
+#properties[, taxdelinquencyyear.NA.type := ifelse(is.na(taxdelinquencyyear), -1, 0)] # -1: NA, 0: having value 
+properties[, taxdelinquencyyear := ifelse(is.na(taxdelinquencyyear), median(taxdelinquencyyear, na.rm = TRUE), taxdelinquencyyear)]
+
+
+#typeconstructiontypeid:     What type of construction material was used to construct the home (1 - 18) => NA = -1
+class(properties$typeconstructiontypeid) #integer
+summary(properties$typeconstructiontypeid) #2928753 NA
+#properties[, typeconstructiontypeid.NA.type := ifelse(is.na(typeconstructiontypeid), -1, 0)] # -1: NA, 0: having value 
+properties[, typeconstructiontypeid := ifelse(is.na(typeconstructiontypeid), "-1", typeconstructiontypeid)]
+
+#architecturalstyletypeid:     Architectural style of the home (i.e. ranch, colonial, split-level, etc…) => NA = -1 
+class(properties$architecturalstyletypeid) #integer
+summary(properties$architecturalstyletypeid) #2979156 NA
+#properties[, architecturalstyletypeid.NA.type := ifelse(is.na(architecturalstyletypeid), -1, 0)] # -1: NA, 0: having value 
+properties[, architecturalstyletypeid := ifelse(is.na(architecturalstyletypeid), "-1", architecturalstyletypeid)]
+
+
+#basementsqft  Finished living area below or partially below ground level => N/A = mean
+class(properties$basementsqft) #integer
+summary(properties$basementsqft) #2979156 NA
+#properties[, basementsqft.NA.type := ifelse(is.na(basementsqft), -1, 0)] # -1: NA, 0: having value 
+properties[, basementsqft := ifelse(is.na(basementsqft), mean(basementsqft, na.rm = TRUE), basementsqft)]
+
+
+properties[, pooltypeid2 := ifelse(is.na(pooltypeid2), "-1", as.character(pooltypeid2))]
+properties[, pooltypeid7 := ifelse(is.na(pooltypeid7), "-1", as.character(pooltypeid7))]
+
+
+
