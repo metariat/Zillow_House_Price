@@ -8,16 +8,16 @@
 
 
 #Run the code number 1, 2, 3 before
-properties = readRDS("C:/Quang/Kaggle/Zillow_House_Price_Data/properties_v2.RDS")
+path = "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/"
+properties = readRDS(paste0(path, "properties_v2.RDS"))
+
+#correct the format of factor variables
+
+names(properties)[sapply(properties, class) %in% c("factor", "character")]
 
 
-missing.values <- transpose(data.frame(sapply(properties, function(x) sum(is.na(x))/length(x))))
-colnames(missing.values) = colnames(properties)
+tract.number
 
-missing.values <- gather(missing.values, key="feature", value="missing_pct")
-missing.values %>% 
-  ggplot(aes(x=reorder(feature,missing_pct),y=missing_pct)) +
-  geom_bar(stat="identity",fill="red") +
-  coord_flip()+theme_bw()
-
+str(properties)
+class(properties$tract.block)
 
