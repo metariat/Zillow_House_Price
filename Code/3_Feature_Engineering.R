@@ -140,5 +140,10 @@ properties[, N.prop.type :=
 water.distance = fread("C:/Quang/Kaggle/Zillow_House_Price/Excel files/water_distance.csv")
 properties = merge(properties, water.distance, by.x = "parcelid", by.y = "id.parcel", all.x = T)
 
-fwrite(properties, "C:/Quang/Kaggle/Zillow_House_Price_Data/properties_v2.csv")
+properties[, water.distance:= ifelse(is.na(water.distance), mean(water.distance, na.rm = T), water.distance)]
+
+properties[, N.tract.count:= ifelse(is.na(N.tract.count), mean(N.tract.count, na.rm = T), N.tract.count)]
+properties[, tract.block:= ifelse(is.na(tract.block), median(tract.block, na.rm = T), tract.block)]
+properties[, tract.number:= ifelse(is.na(tract.number), -1, N.tract.count)]
+
 saveRDS(properties, "C:/Quang/Kaggle/Zillow_House_Price_Data/properties_v2.RDS")
