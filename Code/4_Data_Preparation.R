@@ -30,12 +30,10 @@ transactions = fread(paste0(path, "/train_2016_v2.csv"))
 #Read the cleaned properties data
 properties = readRDS("C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/properties_v2.RDS")
 
-fwrite(properties, "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/properties_v2.csv")
-
-
 properties[, fips := ifelse(is.na(fips), "6037", as.character(fips))]
-
-del.col = c("tract.block", "regionidzip", "regionidcity", "censustractandblock", "census", "rawcensustractandblock")
+del.col = c("tract.block", "regionidzip", "regionidcity", "censustractandblock", 
+            "census", "rawcensustractandblock", "propertyzoningdesc", 
+            "propertycountylandusecode", "regionidneighborhood")
 properties[ ,(del.col) := NULL]
 
 
@@ -63,8 +61,8 @@ data[ ,(del.col) := NULL]
 
 data <- as.data.frame(unclass(data))
 data[mapply(is.infinite, data)] <- 9999
-
-
+rm(properties)
+gc()
 
 #Check the redundant variables
 l <- lapply(data, function(X) as.numeric(factor(X, levels=unique(X))))
@@ -73,39 +71,11 @@ M <- (cor(m,m)==1)
 M[is.na(M)] = FALSE
 M[lower.tri(M, diag=TRUE)] <- FALSE
 colnames(M)[colSums(M)>0]
+#OK
 
+train.index = sample(1:nrow(data), size = round(0.7 * nrow(data)), replace = FALSE)
+train = data[train.index ,]
+test = data[-train.index ,]
 
-data.w.o.outlier = data[abs(data$logerror) < 1.5, ]
-rm(properties)
-
-x = subset(data.w.o.outlier, select = -c(logerror) )
-x = model.matrix(logerror ~ ., data.w.o.outlier)
-y = data.w.o.outlier$logerror
-
-crossval <-  cv.glmnet(x = x, y = y)
-plot(crossval)
-penalty <- crossval$lambda.min #optimal lambda
-fit1 <-glmnet(x = x, y = y, alpha = 1, lambda = penalty ) #estimate the model with that
-coef(fit1)
-
-y.hat = predict(fit1, newx = x)
-mean(abs(y - y.hat))
-
-del.col = c("tract.block", "regionidzip", "regionidcity", "censustractandblock", 
-            "census", "rawcensustractandblock", "transactiondate", "parcelid", 
-            "propertyzoningdesc", "regionidneighborhood", "propertycountylandusecode", "calculatedbathnbr.NA.type",
-            "taxdelinquencyyear.NA.type",
-            "N.life.tax",
-            "finishedfloor1squarefeet.NA.type",
-            "basementsqft.NA.type",
-            "N.tract.count")
-properties[ ,(del.col) := NULL]
-
-properties <- as.data.frame(unclass(properties))
-properties[mapply(is.infinite, properties)] <- 9999
-
-
-
-dtest = model.matrix( ~., properties[1:1000])
-y.hat = predict(fit1, newx = test)
-
+saveRDS(train, "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/train.RDS")
+saveRDS(test, "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/test.RDS")
