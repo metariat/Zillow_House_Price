@@ -23,7 +23,7 @@ library(stringr) #regrex
 
 
 #Read the data
-path = 'C:/Quang/Kaggle/Zillow_House_Price_Data/'
+path = 'C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/'
 transactions = fread(paste0(path, "/train_2016_v2.csv"))
 properties = fread(paste0(path, "properties_2016.csv"))
 sample.submission = fread(paste0(path, "sample_submission.csv"))

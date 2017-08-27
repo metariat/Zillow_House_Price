@@ -137,7 +137,7 @@ properties[, N.prop.type :=
 #Please refer to the code 3_EDA_water_distance_calculation.R
 
 
-water.distance = fread("C:/Quang/Kaggle/Zillow_House_Price/Excel files/water_distance.csv")
+water.distance = fread("C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price/Excel files/water_distance.csv")
 properties = merge(properties, water.distance, by.x = "parcelid", by.y = "id.parcel", all.x = T)
 
 properties[, water.distance:= ifelse(is.na(water.distance), mean(water.distance, na.rm = T), water.distance)]
@@ -146,4 +146,4 @@ properties[, N.tract.count:= ifelse(is.na(N.tract.count), mean(N.tract.count, na
 properties[, tract.block:= ifelse(is.na(tract.block), median(tract.block, na.rm = T), tract.block)]
 properties[, tract.number:= ifelse(is.na(tract.number), -1, N.tract.count)]
 
-saveRDS(properties, "C:/Quang/Kaggle/Zillow_House_Price_Data/properties_v2.RDS")
+saveRDS(properties, "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/properties_v2.RDS")
