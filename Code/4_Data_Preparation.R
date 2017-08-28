@@ -23,14 +23,16 @@ library(stringr) #regrex
 
 
 #Read the data from Kaggle
-path = 'C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/'
+path = 'C:/Quang/Kaggle/Zillow_House_Price_Data/'
 transactions = fread(paste0(path, "/train_2016_v2.csv"))
 
 
 #Read the cleaned properties data
-properties = readRDS("C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/properties_v2.RDS")
+properties = readRDS("C:/Quang/Kaggle/Zillow_House_Price_Data/properties_v2.RDS")
 
 properties[, fips := ifelse(is.na(fips), "6037", as.character(fips))]
+properties[, buildingqualitytypeid := as.factor(as.character(buildingqualitytypeid))]
+
 del.col = c("tract.block", "regionidzip", "regionidcity", "censustractandblock", 
             "census", "rawcensustractandblock", "propertyzoningdesc", 
             "propertycountylandusecode", "regionidneighborhood")
@@ -48,34 +50,23 @@ missing.values %>%
   coord_flip()+theme_bw()
 #OK
 
+
+
+#Replace Inf values
+invisible(lapply(names(properties),function(.name) set(properties, which(is.infinite(properties[[.name]])), j = .name,value =9999)))
+properties <- setDT(as.data.frame(unclass(properties)))
+
+properties = model.matrix(~., properties)
+saveRDS(properties, "C:/Quang/Kaggle/Zillow_House_Price_Data/properties_v2_sparse_matrix.RDS")
+
+
+### Merge with the transaction data
 data = merge(transactions, properties, by = "parcelid", all.x = T)
-del.col = c("tract.block", "regionidzip", "regionidcity", "censustractandblock", 
-            "census", "rawcensustractandblock", "transactiondate", "parcelid", 
-            "propertyzoningdesc", "regionidneighborhood", "propertycountylandusecode", "calculatedbathnbr.NA.type",
-            "taxdelinquencyyear.NA.type",
-            "N.life.tax",
-            "finishedfloor1squarefeet.NA.type",
-            "basementsqft.NA.type",
-            "N.tract.count")
-data[ ,(del.col) := NULL]
-
-data <- as.data.frame(unclass(data))
-data[mapply(is.infinite, data)] <- 9999
-rm(properties)
-gc()
-
-#Check the redundant variables
-l <- lapply(data, function(X) as.numeric(factor(X, levels=unique(X))))
-m <- as.matrix(data.frame(l))
-M <- (cor(m,m)==1)
-M[is.na(M)] = FALSE
-M[lower.tri(M, diag=TRUE)] <- FALSE
-colnames(M)[colSums(M)>0]
-#OK
-
+dim(data)
+set.seed(1)
 train.index = sample(1:nrow(data), size = round(0.7 * nrow(data)), replace = FALSE)
 train = data[train.index ,]
 test = data[-train.index ,]
 
-saveRDS(train, "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/train.RDS")
-saveRDS(test, "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/test.RDS")
+saveRDS(train, "C:/Quang/Kaggle/Zillow_House_Price_Data/train.RDS")
+saveRDS(test, "C:/Quang/Kaggle/Zillow_House_Price_Data/test.RDS")
