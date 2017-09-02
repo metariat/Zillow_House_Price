@@ -11,6 +11,7 @@
 #----------------------------------------------------------------------
 
 #life of the house
+properties = setDT(properties)
 properties[, N.life := 2018 - yearbuilt]
 
 #error of calculation of finished area
@@ -101,19 +102,21 @@ properties = merge(properties, test, by = "tract.number", all.x = T)
 
 
 
-
-
-
-
-
-
+#======================================
+#propertyzoningdesc
+#=======================================
+properties[, len.use := nchar(as.character(propertyzoningdesc))]
+properties[, use.1 := grepl("\\*", propertyzoningdesc)]
+properties[, use.2 := grepl("/", propertyzoningdesc)]
+properties[, use.3 := grepl("\\d", propertyzoningdesc)]
+properties[, use.4 := grepl("-", propertyzoningdesc)]
 
 #---------------------
 #-- Regrouping categorical variables
 #---------------------
 
 properties[, airconditioningtypeid := ifelse(airconditioningtypeid %in% c("11", "3", "9"), "1", as.character(airconditioningtypeid))]
-properties[, buildingclasstypeid := ifelse(is.na(buildingclasstypeid), 0, 1)]
+properties[, buildingclasstypeid := ifelse(is.na(buildingclasstypeid), "-1", as.character(buildingclasstypeid))]
 properties[, heatingorsystemtypeid := ifelse(heatingorsystemtypeid %in% c("1", "10", "11", "12", "13", "14", "18", "20", "19", "21"), 
                                "2", as.character(heatingorsystemtypeid))]
 properties[, heatingorsystemtypeid := ifelse(is.na(heatingorsystemtypeid), "-1", as.character(heatingorsystemtypeid))]
@@ -124,7 +127,20 @@ properties[, N.prop.type :=
                     ifelse(propertylandusetypeid %in% c(1, 47, 246, 247, 248),  "Mixed",
                            ifelse(propertylandusetypeid %in% c(269, 290, 291 ),  "Not Built", "Other")))]
 
+properties[, airconditioningtypeid := ifelse(airconditioningtypeid == "12", "13", as.character(airconditioningtypeid))]
+properties[, architecturalstyletypeid := 
+             ifelse(architecturalstyletypeid %in% c("1", "2", "3", "4", "5", "6", "10", "27"), 
+                    "8", 
+                    as.character(architecturalstyletypeid))]
 
+properties <- setDT(data.frame(unclass(properties)))
+properties[, buildingqualitytypeid := as.numeric(as.character(buildingqualitytypeid))]
+properties[, decktypeid := ifelse(decktypeid == -1, 0, 1)]
+properties[, typeconstructiontypeid := ifelse(typeconstructiontypeid %in% c("10", "11"), 
+                                              "6",
+                                              as.factor(as.character(typeconstructiontypeid)))]
+properties[, taxdelinquencyflag := ifelse(taxdelinquencyflag == "", 0, 1)]
+summary(properties)
 
 #---------------------
 #-- Altitude
@@ -140,10 +156,6 @@ properties[, N.prop.type :=
 water.distance = fread("C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price/Excel files/water_distance.csv")
 properties = merge(properties, water.distance, by.x = "parcelid", by.y = "id.parcel", all.x = T)
 
-properties[, water.distance:= ifelse(is.na(water.distance), mean(water.distance, na.rm = T), water.distance)]
-
-properties[, N.tract.count:= ifelse(is.na(N.tract.count), mean(N.tract.count, na.rm = T), N.tract.count)]
-properties[, tract.block:= ifelse(is.na(tract.block), median(tract.block, na.rm = T), tract.block)]
-properties[, tract.number:= ifelse(is.na(tract.number), -1, N.tract.count)]
+properties[, water.distance:= ifelse(is.na(water.distance), median(water.distance, na.rm = T), water.distance)]
 
 saveRDS(properties, "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/properties_v2.RDS")

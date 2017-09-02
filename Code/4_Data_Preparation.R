@@ -23,15 +23,12 @@ library(stringr) #regrex
 
 
 #Read the data from Kaggle
-path = 'C:/Quang/Kaggle/Zillow_House_Price_Data/'
+path = 'C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data'
 transactions = fread(paste0(path, "/train_2016_v2.csv"))
 
 
 #Read the cleaned properties data
-properties = readRDS("C:/Quang/Kaggle/Zillow_House_Price_Data/properties_v2.RDS")
-
-properties[, fips := ifelse(is.na(fips), "6037", as.character(fips))]
-properties[, buildingqualitytypeid := as.factor(as.character(buildingqualitytypeid))]
+properties = readRDS(paste0(path, "/properties_v2.RDS"))
 
 del.col = c("tract.block", "regionidzip", "regionidcity", "censustractandblock", 
             "census", "rawcensustractandblock", "propertyzoningdesc", 
@@ -56,8 +53,16 @@ missing.values %>%
 invisible(lapply(names(properties),function(.name) set(properties, which(is.infinite(properties[[.name]])), j = .name,value =9999)))
 properties <- setDT(as.data.frame(unclass(properties)))
 
+str(properties)
+properties[, use.1 := ifelse(use.1 == TRUE, 1, 0)]
+properties[, use.2 := ifelse(use.2 == TRUE, 1, 0)]
+properties[, use.3 := ifelse(use.3 == TRUE, 1, 0)]
+properties[, use.4 := ifelse(use.4 == TRUE, 1, 0)]
+
+properties[, tract.number := as.numeric(as.character(tract.number))]
+
 properties = model.matrix(~., properties)
-saveRDS(properties, "C:/Quang/Kaggle/Zillow_House_Price_Data/properties_v2_sparse_matrix.RDS")
+saveRDS(properties, "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/properties_v2_sparse_matrix.RDS")
 
 
 ### Merge with the transaction data
@@ -68,5 +73,5 @@ train.index = sample(1:nrow(data), size = round(0.7 * nrow(data)), replace = FAL
 train = data[train.index ,]
 test = data[-train.index ,]
 
-saveRDS(train, "C:/Quang/Kaggle/Zillow_House_Price_Data/train.RDS")
-saveRDS(test, "C:/Quang/Kaggle/Zillow_House_Price_Data/test.RDS")
+saveRDS(train, "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/train.RDS")
+saveRDS(test, "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/test.RDS")

@@ -38,12 +38,12 @@ properties$latitude = properties$latitude / 1e06
 cat.var = c("airconditioningtypeid", "architecturalstyletypeid", "buildingclasstypeid",
             "decktypeid", "heatingorsystemtypeid", "propertylandusetypeid", "regionidcounty",
             "regionidcity", "regionidzip", "regionidneighborhood", "storytypeid", 
-            "typeconstructiontypeid", "fips")
+            "typeconstructiontypeid", "fips", "buildingqualitytypeid")
 
 for (i in cat.var){
   properties[, eval(i):= as.factor(as.character(get(i)))]
 }
-
+str(properties)
 
 #-----------------------------------------------------------------------------#
 #---                     Exploratory Data Analysis                         ---#

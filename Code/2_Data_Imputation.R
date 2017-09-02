@@ -9,12 +9,22 @@
 
 #Transforming bad formatting categorical variables
 properties$fireplaceflag = ifelse(properties$fireplaceflag == "true", 1, 0)
-properties[, pooltypeid2 := ifelse(pooltypeid2 == 1, 1, 
-                                   ifelse(poolcnt == 1,0, -1))]
-properties[, pooltypeid7 := ifelse(pooltypeid7 == 1, 1, 
-                                   ifelse(poolcnt ==1, 0, -1))]
-properties[, pooltypeid10 := ifelse(pooltypeid10 == 1, 1, 0)]
+properties[, pooltypeid2 := 
+               ifelse(pooltypeid2 == 1 & is.na(pooltypeid2) == F, 
+                      1, 
+                      ifelse(poolcnt == 1 & is.na(poolcnt) == F,0, -1))]
+
+properties[, pooltypeid7 := ifelse(pooltypeid7 == 1 & is.na(pooltypeid7) == F, 
+                                   1, 
+                                   ifelse(poolcnt == 1 & is.na(poolcnt) == F, 0, -1))]
+
+properties[, pooltypeid2 := as.factor(as.character(pooltypeid2))]
+properties[, pooltypeid7 := as.factor(as.character(pooltypeid7))]
+
+properties[, pooltypeid10 := ifelse(pooltypeid10 == 1 & is.na(pooltypeid10) == F, 1, 0)]
+
 properties[, hashottuborspa := ifelse(hashottuborspa == "true", 1, 0)]
+
 properties <- properties %>% 
   mutate(census = as.character(rawcensustractandblock), 
          tract.number = str_sub(census,5,11), 
@@ -26,8 +36,6 @@ properties <- properties %>%
 properties = setDT(properties) 
 properties[, airconditioningtypeid := ifelse(is.na(airconditioningtypeid), "-1", 
                                              as.character(airconditioningtypeid))]
-
-properties[, is.fire.place := ifelse(is.na(fireplacecnt), 0, 1)]
 
 properties[, fireplacecnt := ifelse(is.na(fireplacecnt), 0, fireplacecnt)]
 
