@@ -1,5 +1,6 @@
 library(data.table)
-
+library(glmnet)
+library(moments) #skewness calculation
 
 
 #---------------------------------------------------------------------#
@@ -8,129 +9,168 @@ library(data.table)
 #---------------------------------------------------------------------#
 #---------------------------------------------------------------------#
 
-train = setDT(readRDS("C:/Quang/Kaggle/Zillow_House_Price_Data/train.RDS"))
-test = setDT(readRDS("C:/Quang/Kaggle/Zillow_House_Price_Data/test.RDS"))
+path = "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/"
+
+train = setDT(readRDS(paste0(path,"train.RDS")))
+test = setDT(readRDS(paste0(path,"test.RDS")))
 
 train[, transactiondate := NULL]
 test[, transactiondate := NULL]
+train[, tract.number := NULL]
+test[, tract.number := NULL]
+
+
 
 #-------------------------------------------------------------------#
-# Model without outliers #
+
+# Model with outliers #
+
 #-------------------------------------------------------------------#
 y.train = train$logerror
-x.train = subset(train, select= -c(logerror))
+x.train = subset(train, select= -c(logerror, parcelid))
 x.train = as.matrix(x.train)
 
 y.test = test$logerror
-x.test = subset(test, select= -c(logerror))
+x.test = subset(test, select= -c(logerror, parcelid))
 x.test = as.matrix(x.test)
 
-y = c(y.train, y.test)
-x = rbind(x.train, x.test)
-x = as.matrix(x)
-
 #Model
-
-library(glmnet)
-cv.out = cv.glmnet (x, y, alpha = 1, nfolds = 10, type.measure = "mae", parallel = T)
+cv.out = cv.glmnet (x.train, y.train, alpha = 1, nfolds = 10, type.measure = "mae", parallel = T)
 plot(cv.out)
-bestlam = cv.out$lambda.min
+bestlam = cv.out$lambda.min #best lambda
+cv.out$cvm[match(bestlam, cv.out$lambda)] #cv mae min
+cv.out$cvsd[match(bestlam, cv.out$lambda)] #cv mae min sd
+
+#train error
 lasso.pred = predict(cv.out, s = bestlam, newx=x.train)
 mean(abs(lasso.pred - y.train))
 
-
-#Read the cleaned properties data
-properties = readRDS("C:/Quang/Kaggle/Zillow_House_Price_Data/properties_v2_sparse_matrix.RDS")
-properties = as.matrix(properties)
-
-dim(properties)
-
-lasso.pred = predict(cv.out, s = bestlam, newx=properties)
-lasso.pred = round(lasso.pred, 5)
-
-submission = data.frame("parcelid" = data.frame(properties)$parcelid, "201610" = lasso.pred)
-setnames(submission, old = "X1", new = "a_201610")
-submission = setDT(submission)
-submission[, a_201611 := a_201610]
-submission[, a_201612 := a_201610]
-submission[, a_201710 := a_201610]
-submission[, a_201711 := a_201610]
-submission[, a_201712 := a_201610]
-submission[, parcelid := as.integer(as.character(parcelid))]
-
-setnames(submission, old = c("a_201610", "a_201611", "a_201612", "a_201710", "a_201711", "a_201712"),
-                     new = c("201610", "201611", "201612", "201710", "201711", "201712"))
-
-fwrite(submission, "C:/Quang/Kaggle/Zillow_House_Price_Data/submissions/20172808_Q_linear_lasso_with_outliers.csv")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#-------------------------------------------------------------------#
-# Model without outliers #
-#-------------------------------------------------------------------#
-train = train[abs(logerror) < 1.5, ]
-y.train = train$logerror
-x.train = subset(train, select= -c(logerror))
-x.train = as.matrix(x.train)
-
-y.test = test$logerror
-x.test = subset(test, select= -c(logerror))
-x.test = as.matrix(x.test)
-
-
-#Model
-
-library(glmnet)
-cv.out = cv.glmnet (x.train, y.train, alpha = 1, nfolds = 5, type.measure = "mae", parallel = T)
-plot(cv.out)
-bestlam = cv.out$lambda.min
-lasso.pred = predict(cv.out, s = bestlam, newx=x.train)
-mean(abs(lasso.pred - y.train))
-
-
+#test error
 lasso.pred = predict(cv.out, s = bestlam, newx=x.test)
 mean(abs(lasso.pred - y.test))
 
-y = c(y.train, y.test)
-x = as.matrix(rbind(x.train, x.test))
-cv.out = cv.glmnet (x = x, y = y, alpha = 1, nfolds = 5, type.measure = "mae", parallel = T)
+
+
+
+
+#-------------------------------------------------------------------#
+
+# Model without outliers #
+
+#-------------------------------------------------------------------#
+train = train[abs(logerror) < 0.2, ]
+y.train = train$logerror
+x.train = subset(train, select= -c(logerror, parcelid))
+x.train = as.matrix(x.train)
+
+y.test = test$logerror
+x.test = subset(test, select= -c(logerror, parcelid))
+x.test = as.matrix(x.test)
+
+
+#Model
+cv.out = cv.glmnet (x.train, y.train, alpha = 1, nfolds = 5, type.measure = "mae", parallel = T)
+plot(cv.out)
+bestlam = cv.out$lambda.min #best lambda
+cv.out$cvm[match(bestlam, cv.out$lambda)] #cv mae min
+cv.out$cvsd[match(bestlam, cv.out$lambda)] #cv mae min sd
+#training mae
+lasso.pred = predict(cv.out, s = bestlam, newx=x.train)
+mean(abs(lasso.pred - y.train))
+
+#testing mae
+lasso.pred = predict(cv.out, s = bestlam, newx=x.test)
+mean(abs(lasso.pred - y.test))
 
 
 
 
 
-#Read the cleaned properties data
-properties = readRDS("C:/Quang/Kaggle/Zillow_House_Price_Data/properties_v2_sparse_matrix.RDS")
-properties = as.matrix(properties)
 
-dim(properties)
 
-lasso.pred = predict(cv.out, newx = properties)
-lasso.pred = round(lasso.pred, 5)
 
-submission = data.frame("parcelid" = data.frame(properties)$parcelid, "201610" = lasso.pred)
-setnames(submission, old = "X1", new = "a_201610")
-submission = setDT(submission)
-submission[, a_201611 := a_201610]
-submission[, a_201612 := a_201610]
-submission[, a_201710 := a_201610]
-submission[, a_201711 := a_201610]
-submission[, a_201712 := a_201610]
-submission[, parcelid := as.integer(as.character(parcelid))]
+#-------------------------------------------------------------------#
 
-setnames(submission, old = c("a_201610", "a_201611", "a_201612", "a_201710", "a_201711", "a_201712"),
-         new = c("201610", "201611", "201612", "201710", "201711", "201712"))
+# Model without outliers and with transformed variables
 
-fwrite(submission, "C:/Quang/Kaggle/Zillow_House_Price_Data/submissions/20172808_Q_linear_lasso_without_outliers_cap_1_point_5.csv")
+#-------------------------------------------------------------------#
+
+
+
+path = "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/"
+
+train = setDT(readRDS(paste0(path,"train.RDS")))
+test = setDT(readRDS(paste0(path,"test.RDS")))
+
+train[, transactiondate := NULL]
+test[, transactiondate := NULL]
+train[, tract.number := NULL]
+test[, tract.number := NULL]
+
+skew.var = c("basementsqft",
+             "bathroomcnt",
+             "calculatedbathnbr",
+             "finishedfloor1squarefeet",
+             "calculatedfinishedsquarefeet",
+             "finishedsquarefeet12",
+             "finishedsquarefeet13",
+             "finishedsquarefeet15",
+             "finishedsquarefeet50",
+             "finishedsquarefeet6",
+             "fireplacecnt",
+             "fullbathcnt",
+             "garagecarcnt",
+             "lotsizesquarefeet",
+             "poolsizesum",
+             "roomcnt",
+             "unitcnt",
+             "yardbuildingsqft17",
+             "yardbuildingsqft26",
+             "structuretaxvaluedollarcnt",
+             "taxvaluedollarcnt",
+             "landtaxvaluedollarcnt",
+             "taxamount",
+             "N.living.area.error",
+             "N.living.area.prop",
+             "N.LivingAreaProp2",
+             "N.ExtraSpace",
+             "N.TotalRooms",
+             "N.ValueProp",
+             "N.value.ratio",
+             "N.tax.score",
+             "N.life.tax",
+             "N.zip.count",
+             "N.city.count",
+             "N.tract.count",
+             "water.distance")
+
+for (i in skew.var){
+  min.va = min(min(train[, get(i)]), min(test[, get(i)]), 0)
+  train[, eval(i) := log(get(i) - min.va + 1)]
+  test[, eval(i) := log(get(i) - min.va + 1)]
+}
+
+
+train = train[abs(logerror) < 0.2, ]
+y.train = train$logerror
+x.train = subset(train, select= -c(logerror, parcelid))
+x.train = as.matrix(x.train)
+
+y.test = test$logerror
+x.test = subset(test, select= -c(logerror, parcelid))
+x.test = as.matrix(x.test)
+
+
+#Model
+cv.out = cv.glmnet (x.train, y.train, alpha = 1, nfolds = 5, type.measure = "mae", parallel = T)
+plot(cv.out)
+bestlam = cv.out$lambda.min #best lambda
+cv.out$cvm[match(bestlam, cv.out$lambda)] #cv mae min
+cv.out$cvsd[match(bestlam, cv.out$lambda)] #cv mae min sd
+#training mae
+lasso.pred = predict(cv.out, s = bestlam, newx=x.train)
+mean(abs(lasso.pred - y.train))
+
+#testing mae
+lasso.pred = predict(cv.out, s = bestlam, newx=x.test)
+mean(abs(lasso.pred - y.test))
