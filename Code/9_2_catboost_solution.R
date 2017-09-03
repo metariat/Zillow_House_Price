@@ -49,7 +49,7 @@ control <- trainControl(method = "cv",
 )
 
 grid <- expand.grid(depth = c(6),
-                    learning_rate = c(0.005),
+                    learning_rate = c(0.0021),
                     iterations = c(600),
                     l2_leaf_reg = c(1e-3),
                     rsm = c(0.95),
@@ -81,7 +81,7 @@ cat.pred = predict(cb, properties)
 cat.pred = round(cat.pred, 5)
 result <- data.frame(cbind(parcelid, cat.pred, cat.pred, cat.pred, cat.pred, cat.pred, cat.pred))
 colnames(result) <- c("parcelid","201610","201611","201612","201710","201711","201712")
-
+result$parcelid = as.integer(as.character(result$parcelid))
 fwrite(result, 
        file = "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/submission/20170902_Q_init_catboost_w_o_outliers_trans_var.csv", 
        row.names = FALSE ) 
