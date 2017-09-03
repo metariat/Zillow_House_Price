@@ -99,7 +99,7 @@ train[fips6059 == 0 & fips6111 == 0, table(is.outlier) / length(is.outlier) * 10
 
 
 #train - test separation
-train.index = sample(1:nrow(train), size = round(0.5 * nrow(train)), replace = FALSE)
+train.index = sample(1:nrow(train), size = round(1 * nrow(train)), replace = FALSE)
 training = train[train.index ,]
 testing = train[-train.index ,]
 
