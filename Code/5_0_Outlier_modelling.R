@@ -86,8 +86,9 @@ gc()
 #----------------------------------------------------------------#
 
 #Definition of outliers
-train[, is.outlier := ifelse(abs(logerror) > 0.2, 1, 0)]
-train[, is.outlier := as.factor(is.outlier)]
+train[, is.outlier := ifelse(logerror > 0.2, 2, 
+                             ifelse(logerror < - 0.2, 0, 1))]
+train[, is.outlier := as.factor(as.character(is.outlier))]
 train[, logerror := NULL]
 
 
@@ -118,7 +119,8 @@ x.test = as.matrix(x.test)
 #----------------------------------------------------------------#
 #----------------------------------------------------------------#
 
-cv.out = cv.glmnet (x = x.train, y = as.factor(y.train), family = "binomial", 
+cv.out = cv.glmnet (x = x.train, y = as.factor(y.train), 
+                    family = "multinomial", type.multinomial = "grouped",
                     alpha = 1, nfolds = 5, type.measure = "auc", parallel = T)
 plot(cv.out)
 bestlam = cv.out$lambda.min #best lambda
@@ -133,8 +135,13 @@ x = as.matrix(x)
 x2 = as.matrix(x2)
 prob.outlier.train = predict(cv.out, s = bestlam, newx = x, type = "response")
 prob.outlier.test = predict(cv.out, s = bestlam, newx = x2, type = "response")
-train.outlier.prob = data.frame("parcelid" = train$parcelid, "prob" = prob.outlier.train)
-test.outlier.prob = data.frame("parcelid" = test$parcelid, "prob" = prob.outlier.test)
+train.outlier.prob = data.frame("parcelid" = train$parcelid, 
+                                "prob.1" = data.frame(prob.outlier.train)[, 1], 
+                                "prob.2" = data.frame(prob.outlier.train)[, 3])
+
+test.outlier.prob = data.frame("parcelid" = test$parcelid, 
+                               "prob.1" = data.frame(prob.outlier.test)[, 1],
+                               "prob.2" = data.frame(prob.outlier.test)[, 3])
 
 fwrite(train.outlier.prob, "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price/Excel files/train_outlier_prob.csv")
 fwrite(test.outlier.prob, "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price/Excel files/test_outlier_prob.csv")
