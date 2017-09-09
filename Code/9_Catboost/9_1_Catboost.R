@@ -48,22 +48,22 @@ control <- trainControl(method = "cv",
                         summaryFunction = maeSummary
 )
 
-grid <- expand.grid(depth = c(6),
-                    learning_rate = c(0.005),
+grid <- expand.grid(depth = c(5),
+                    learning_rate = c(0.0037, 0.005),
                     iterations = c(600),
                     l2_leaf_reg = c(1e-3),
-                    rsm = c(0.95),
+                    rsm = c(0.5, 0.9),
                     border_count = c(32)
 )
-
-cb <- train(y=y.train,
-            x=x.train, 
-            preProcess=NULL,
-            method=catboost.caret, 
-            metric = "MAE", 
-            maximize = FALSE, 
-            tuneGrid = grid, 
-            trControl = control
+#0.04226789
+cb <- train(y          = y.train,
+            x          = x.train, 
+            preProcess = NULL,
+            method     = catboost.caret, 
+            metric     = "MAE", 
+            maximize   = FALSE, 
+            tuneGrid   = grid, 
+            trControl  = control
 )
 
 
