@@ -43,16 +43,18 @@ maeSummary <- function (train,
 }
 
 control <- trainControl(method = "cv",
-                        number = 3,
+                        number = 5,
                         verboseIter=TRUE,
-                        summaryFunction = maeSummary)
+                        summaryFunction = maeSummary
+)
 
 grid <- expand.grid(depth = c(5),
-                    learning_rate = c(0.06),
+                    learning_rate = c(0.005, 0.01),
                     iterations = c(600),
                     l2_leaf_reg = c(1e-3),
-                    rsm = c(0.6),
-                    border_count = c(64))
+                    rsm = c(0.5, 0.9),
+                    border_count = c(32)
+)
 #0.04226789
 cb <- train(y          = y.train,
             x          = x.train, 
@@ -63,24 +65,6 @@ cb <- train(y          = y.train,
             tuneGrid   = grid, 
             trControl  = control
 )
-
-#second round
-# depth learning_rate iterations l2_leaf_reg rsm border_count
-# 7     5          0.01        600       0.001 0.5           32
-
-
-#third round
-# depth learning_rate iterations l2_leaf_reg rsm border_count
-# 10     5          0.05        600       0.001 0.5           64
-
-#forth round
-# depth learning_rate iterations l2_leaf_reg rsm border_count
-# 4     5          0.07        600       0.001 0.7           64
-
-# 5 round
-# depth learning_rate iterations l2_leaf_reg rsm border_count
-# 3     5          0.06        600       0.001 0.6           64
-
 
 
 #Model information
