@@ -128,12 +128,12 @@ control <- trainControl(method = "cv",
 
 grid <- expand.grid(depth = c(5),
                     learning_rate = c(0.06, 0.04, 0.1),
-                    iterations = c(1000),
-                    l2_leaf_reg = c(1e-3, 5e-3, 5e-4),
-                    rsm = c(0.6, 0.4, 0.8),
-                    border_count = c(64, 32))
+                    iterations = c(1500, 700),
+                    l2_leaf_reg = c(1e-3, 2e-3, 5e-4, 2e-4),
+                    rsm = c(0.6, 0.4),
+                    border_count = c(64, 128))
 
-
+time1 = Sys.time()
 cb <- train(y          = y.train,
             x          = x.train, 
             preProcess = NULL,
@@ -141,10 +141,11 @@ cb <- train(y          = y.train,
             metric     = "MAE", 
             maximize   = FALSE, 
             tuneGrid   = grid, 
-            trControl  = control
-)
+            trControl  = control)
+time2 = Sys.time()
 
-
+#learning rate = 0.04, iterations = 1000, l2_leaf_reg = 1e-3, rms = 0.4, border_count = 64
+# Fitting depth = 5, learning_rate = 0.04, iterations = 1500, l2_leaf_reg = 0.001, rsm = 0.4, border_count = 64 on full training set
 
 #Model information
 print(cb)

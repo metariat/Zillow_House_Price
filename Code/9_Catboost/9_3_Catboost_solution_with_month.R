@@ -130,7 +130,7 @@ control <- trainControl(method = "cv",
 
 grid <- expand.grid(depth = c(5),
                     learning_rate = c(0.04),
-                    iterations = c(1000),
+                    iterations = c(1500),
                     l2_leaf_reg = c(1e-3),
                     rsm = c(0.4),
                     border_count = c(64))
@@ -176,4 +176,4 @@ submission = data.frame("parcelid" = as.integer(as.character(properties$parcelid
 submission = setDT(submission)
 setnames(submission, old = c("a_201610", "a_201611", "a_201612", "a_201710", "a_201711", "a_201712"),
          new = c("201610", "201611", "201612", "201710", "201711", "201712"))
-fwrite(submission, "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/submission/20170909_Q_Quick_tuned_catboost_with_month_v2.csv")
+fwrite(submission, "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/submission/20170909_Q_Quick_tuned_catboost_with_month_v3.csv")
