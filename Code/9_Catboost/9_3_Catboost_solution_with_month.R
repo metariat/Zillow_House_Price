@@ -130,7 +130,7 @@ control <- trainControl(method = "cv",
 
 grid <- expand.grid(depth = c(5),
                     learning_rate = c(0.04),
-                    iterations = c(1500),
+                    iterations = c(1000),
                     l2_leaf_reg = c(1e-3),
                     rsm = c(0.4),
                     border_count = c(64))
