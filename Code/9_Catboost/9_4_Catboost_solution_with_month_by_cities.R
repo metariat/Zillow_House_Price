@@ -149,6 +149,12 @@ gc()
 cat.pred.6059 <- predict(cb.6059, x.test.6059)
 cat.pred.6111 <- predict(cb.6111, x.test.6111)
 cat.pred.other <- predict(cb.other, x.test.other)
+mean(abs(cat.pred.6059 - y.test.6059))
+#0.05362657
+mean(abs(cat.pred.6111 - y.test.6111))
+#0.06103958
+mean(abs(cat.pred.other - y.test.other))
+#0.07215157
 
 
 cat.pred = c(cat.pred.6059, cat.pred.6111, cat.pred.other)

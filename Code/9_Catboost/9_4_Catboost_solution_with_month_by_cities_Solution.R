@@ -13,13 +13,6 @@ gc()
 source("C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price/Code/0_1_Data_Loading_For_Modelling_By_Cities.R")
 
 
-
-#-------------------------------------------------------------------#
-
-#                   Defining training & testing set
-
-#-------------------------------------------------------------------#
-
 #----------------------------------------------------#
 #----------------------------------------------------#
 
@@ -38,7 +31,7 @@ train = rbind(train, test)
 #Devide into cities
 train.6059 = train[train$fips6059 == 1, ]
 train.6111 = train[train$fips6111 == 1, ]
-train.other = train[train$fips6059 == 0 & train$fips6111 == 0, ]
+train.other = train
 
 #----------------------------------------------------#
 #----------------------------------------------------#
