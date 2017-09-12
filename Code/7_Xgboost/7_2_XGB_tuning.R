@@ -4,15 +4,10 @@ library(xgboost)
 library(caret)
 
 
-train = setDT(readRDS("Z:/Users/Q.DO/Poubelle/train.RDS"))
-test = setDT(readRDS("Z:/Users/Q.DO/Poubelle/test.RDS"))
+#Data loading
+source("C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price/Code/0_Data_Loading_For_Modelling.R")
 
-train[, transactiondate := NULL]
-test[, transactiondate := NULL]
-train = train[train$logerror > -0.4 & train$logerror < 0.419, ]
-test = test[test$logerror > -0.4 & test$logerror < 0.419, ]
-
-
+train = train[abs(logerror) < 0.2, ]
 y.train = train$logerror
 x.train = subset(train, select= -c(logerror, parcelid))
 x.train = as.matrix(x.train)
@@ -26,13 +21,13 @@ x.test = as.matrix(x.test)
 
 # set up the cross-validated hyper-parameter search
 xgb.grid = expand.grid(
-  nrounds = 5000,
-  eta = c(0.01, 0.001, 0.0001),
-  max_depth = c(2, 4, 6, 8),
-  gamma = c(1,5),
-  colsample_bytree = c(0.4, 0.6, 1),
+  nrounds = 500,
+  max_depth = c(6, 5),
+  eta = c(0.01, 0.005, 0.02),
+  gamma = 0,
+  colsample_bytree = c(0.5, 0.6, 0.7),
   min_child_weight = c(1, 10, 20),
-  subsample = c(1, 0.6)
+  subsample = c(0.6, 0.8, 0.7, 0.5)
 )
 
 
@@ -55,6 +50,14 @@ xgb.train = train(
   y = y.train,
   trControl = xgb.trcontrol,
   tuneGrid = xgb.grid,
-  method = "xgbTree"
+  method = "xgbTree",
+  metric = "MAE"
 )
 time2 = Sys.time()
+
+#round 1:
+#nrounds = 5000, max_depth = 4, eta = 0.01, gamma = 1, colsample_bytree = 1, min_child_weight = 1
+#subsample = 0.6
+
+#round 2:
+#Fitting nrounds = 500, max_depth = 6, eta = 0.01, gamma = 0, colsample_bytree = 0.6, min_child_weight = 10, subsample = 0.8 on full training set
