@@ -61,3 +61,6 @@ time2 = Sys.time()
 
 #round 2:
 #Fitting nrounds = 500, max_depth = 6, eta = 0.01, gamma = 0, colsample_bytree = 0.6, min_child_weight = 10, subsample = 0.8 on full training set
+
+#round 3:
+# nrounds = 700, max_depth = 6, eta = 0.02, gamma = 0, colsample_bytree = 0.7, min_child_weight = 1, subsample = 0.7
