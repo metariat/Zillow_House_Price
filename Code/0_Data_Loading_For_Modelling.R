@@ -25,8 +25,8 @@ setnames(test, old = "N.prop.typeNot Built", new = "N.prop.typeNot.Built")
 setnames(properties, old = "X.Intercept.", new = "(Intercept)")
 
 
-train[, transactiondate := NULL]
-test[, transactiondate := NULL]
+# train[, transactiondate := NULL]
+# test[, transactiondate := NULL]
 train[, tract.number := NULL]
 test[, tract.number := NULL]
 properties[, tract.number := NULL]
