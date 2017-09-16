@@ -1,13 +1,22 @@
 library(data.table)
 library(xgboost)
-path.code = "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/"
-train = setDT(readRDS(paste0(path.code,"train.RDS")))
-test = setDT(readRDS(paste0(path.code,"test.RDS")))
+
+
+#-------------------------------------------------#
+#                    Data loading                 #
+#-------------------------------------------------#
+source("C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price/Code/0_Data_Loading_For_Modelling.R")
+
+#add month feature
+train$transactiondate = as.Date(train$transactiondate, "%Y-%m-%d")
+test$transactiondate = as.Date(test$transactiondate, "%Y-%m-%d")
+
+train[, month := month(transactiondate)]
+test[, month :=month(transactiondate)]
 
 train[, transactiondate := NULL]
 test[, transactiondate := NULL]
-train[, tract.number := NULL]
-test[, tract.number := NULL]
+
 
 train = train[abs(train$logerror) < 0.2, ]
 test = test[abs(test$logerror) < 0.2, ]
@@ -22,21 +31,17 @@ y_mean = mean(y)
 
 param <- list(objective           = "reg:linear",
               eval_metric         = "mae",
-              eta                 = 0.037,
-              max_depth           = 5, 
-              subsample           = 0.8,
-              colsample_bytree    = 0.5,
-              min_child_weight    = 4,
-              maximize            = FALSE,
-              lambda              = 0.8,
-              alpha               = 0.4,
-              base_score          = y_mean,
-              silent              = 0)
+              eta                 = 0.02,
+              max_depth           = 6, 
+              subsample           = 0.7,
+              colsample_bytree    = 0.7,
+              min_child_weight    = 1,
+              base_score          = y_mean)
 
 xgb_cv <- xgb.cv(data = x,
                  label = y,
                  params = param,
-                 nrounds = 700,
+                 nrounds = 800,
                  prediction = TRUE,
                  maximize = FALSE,
                  nfold = 5,
@@ -61,23 +66,47 @@ mean(abs(xgb.pred - y))
 #-------------------------------------------------------#
 #-------------------------------------------------------#
 
-#Read the cleaned properties data
-properties = readRDS("C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/properties_v2_sparse_matrix.RDS")
-parcelid = data.frame(properties)$parcelid
+#Prediction
+properties[, month := 10]
+properties = as.matrix(properties)
+gc()
+xgb.pred.10 <- 0.97*predict(model, properties) + 0.03*0.11
 
-xgb.pred = predict(model, new = properties)
-xgb.pred = round(xgb.pred, 5)
+#11
+gc()
+properties = data.frame(properties)
+gc()
+properties$month = 11
+gc()
+properties = as.matrix(properties)
+gc()
+xgb.pred.11 <- 0.97*predict(model, properties) + 0.03*0.11
 
-submission = data.frame("parcelid" = parcelid, "a_201610" = xgb.pred)
+#12
+gc()
+properties = data.frame(properties)
+gc()
+properties$month = 12
+gc()
+properties = as.matrix(properties)
+gc()
+xgb.pred.12 <- 0.97*predict(model, properties) + 0.03*0.11
+gc()
+
+#round
+xgb.pred.10 = round(xgb.pred.10, 5)
+xgb.pred.11 = round(xgb.pred.11, 5)
+xgb.pred.12 = round(xgb.pred.12, 5)
+
+submission = data.frame("parcelid" = as.integer(as.character(data.frame(properties)$parcelid)), 
+                        "a_201610" = xgb.pred.10,
+                        "a_201611" = xgb.pred.11,
+                        "a_201612" = xgb.pred.12,
+                        "a_201710" = xgb.pred.10,
+                        "a_201711" = xgb.pred.11,
+                        "a_201712" = xgb.pred.12)
+gc()
 submission = setDT(submission)
-submission[, a_201611 := a_201610]
-submission[, a_201612 := a_201610]
-submission[, a_201710 := a_201610]
-submission[, a_201711 := a_201610]
-submission[, a_201712 := a_201610]
-submission[, parcelid := as.integer(as.character(parcelid))]
-
 setnames(submission, old = c("a_201610", "a_201611", "a_201612", "a_201710", "a_201711", "a_201712"),
          new = c("201610", "201611", "201612", "201710", "201711", "201712"))
-
-fwrite(submission, "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/submission/20170904_Q_simple_XGB_without_outliers.csv")
+fwrite(submission, "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/submission/20170913_Q_tuned_xgboost_with_month.csv")
