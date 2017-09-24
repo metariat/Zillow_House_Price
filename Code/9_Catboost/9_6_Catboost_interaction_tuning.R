@@ -100,80 +100,61 @@ train = train[abs(train$logerror) < 0.2, ]
 y.train = train$logerror
 x.train = subset(train, select= -c(logerror, parcelid))
 
-test = test[abs(test$logerror) < 0.2, ]
 y.test = test$logerror
 x.test = subset(test, select= -c(logerror, parcelid))
 
-y = c(y.train, y.test)
-x = rbind(x.train, x.test)
 
-#-------------------------------------------------------------------#
+#-----------------------------------------------------------#
 
-#                 Run catboost
+train_pool <- catboost.load_pool(data = x.train, label = y.train)
+test_pool <- catboost.load_pool(data = x.test, label = y.test)
 
-#-------------------------------------------------------------------#
+params_simple <- list(depth = 5,
+                      learning_rate = 0.04,
+                      iterations = 400,
+                      l2_leaf_reg = 1e-3,
+                      rsm = 0.4,
+                      border_count = 64,
+                      loss_function = 'MAE',
+                      train_dir = 'train_dir')
+model_simple <- catboost.train(train_pool, test_pool, params_simple)
+
+params_with_od <- list(depth = 5,
+                       learning_rate = 0.04,
+                       iterations = 400,
+                       l2_leaf_reg = 1e-3,
+                       rsm = 0.4,
+                       border_count = 64,
+                       loss_function = 'MAE',
+                       train_dir = 'train_dir',
+                       od_type = 'Iter',
+                       od_wait = 50)
+model_with_od <- catboost.train(train_pool, test_pool, params_with_od)
+model_with_od$tree_count
+
+params_best <- list(depth = 5,
+                    learning_rate = 0.04,
+                    iterations = 400,
+                    l2_leaf_reg = 1e-3,
+                    rsm = 0.4,
+                    border_count = 64,
+                    loss_function = 'MAE',
+                    train_dir = 'train_dir',
+                    use_best_model = TRUE)
+model_best <- catboost.train(train_pool, test_pool, params_best)
+
+prediction_simple <- catboost.predict(model_simple, test_pool)
+prediction_best <- catboost.predict(model_best, test_pool)
+prediction_od <- catboost.predict(model_with_od, test_pool)
+
+mae(y.test, prediction_simple)
+mae(y.test, prediction_best)
+mae(y.test, prediction_od)
 
 
-# Enable caret to use MAE as eval metric
-maeSummary <- function (train,
-                        lev = NULL,
-                        model = NULL) {
-  out <- mae(train$obs, train$pred)  
-  names(out) <- "MAE"
-  out
-}
-
-control <- trainControl(method = "cv",
-                        number = 5,
-                        verboseIter=TRUE,
-                        summaryFunction = maeSummary)
-
-grid <- expand.grid(depth = c(5),
-                    learning_rate = c(0.04),
-                    iterations = c(111),
-                    l2_leaf_reg = c(1e-3),
-                    rsm = c(0.4),
-                    border_count = c(64))
-
-cb <- train(y          = y,
-            x          = x, 
-            preProcess = NULL,
-            method     = catboost.caret, 
-            metric     = "MAE", 
-            maximize   = FALSE, 
-            tuneGrid   = grid, 
-            trControl  = control)
 
 
-#Model information
-print(cb)
-#0.0419751
 
-#Prediction
-properties[, month := 10]
-cat.pred.10 <- 0.97*predict(cb, properties) + 0.03*0.11
 
-gc()
-properties[, month := 11]
-cat.pred.11 <- 0.97*predict(cb, properties) + 0.03*0.11
 
-gc()
-properties[, month := 12]
-cat.pred.12 <- 0.97*predict(cb, properties) + 0.03*0.11
-gc()
 
-cat.pred.10 = round(cat.pred.10, 5)
-cat.pred.11 = round(cat.pred.11, 5)
-cat.pred.12 = round(cat.pred.12, 5)
-
-submission = data.frame("parcelid" = as.integer(as.character(properties$parcelid)), 
-                        "a_201610" = cat.pred.10,
-                        "a_201611" = cat.pred.11,
-                        "a_201612" = cat.pred.12,
-                        "a_201710" = cat.pred.10,
-                        "a_201711" = cat.pred.11,
-                        "a_201712" = cat.pred.12)
-submission = setDT(submission)
-setnames(submission, old = c("a_201610", "a_201611", "a_201612", "a_201710", "a_201711", "a_201712"),
-         new = c("201610", "201611", "201612", "201710", "201711", "201712"))
-fwrite(submission, "C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price_Data/submission/20170909_Q_Quick_tuned_catboost_with_month_v4.csv")

@@ -41,8 +41,8 @@ minor.family.unit 	= rep(-1,nrow(demo.data))
 
 
 time1 = Sys.time()
-for (i in 2353:1){
-  Sys.sleep(5)
+for (i in nrow(demo.data):1){
+  Sys.sleep(20)
   county = demo.data$county[i]
   tract = demo.data$tract.number[i]
   url1 = "https://www.ffiec.gov/census/report.aspx?year=2016&county="
