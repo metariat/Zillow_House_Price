@@ -10,4 +10,4 @@ Some remarks before the modelisation:
   - Check the ordinal categorical vs non-ordinal categorical variables.
   - Check the area related variable for feature engineering
   - Apply Box-Cox transformation to highly skewed variables: http://onlinestatbook.com/2/transformations/box-cox.html
-  - Dummifying the categorical variables (check the number of levels before)
+  - Dummifying the categorical variables (or not) (check the number of levels before)
