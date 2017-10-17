@@ -60,13 +60,14 @@ rankScaled3000 = 100*rankdata(parcelDensity3000)/len(parcelDensity3000)
 rankScaled1000 = 100*rankdata(parcelDensity1000)/len(parcelDensity1000)
 rankScaled300 = 100*rankdata(parcelDensity300)/len(parcelDensity300)
 
-out = pd.DataFrame({'longitude' : train['longitude'].values, 
-                    'latitude' : train['latitude'].values,
-                    'density30000' : parcelDensity30000,
-                    'density10000' : parcelDensity10000,
-                    'density3000'  : parcelDensity3000,
-                    'density1000'  : parcelDensity1000,
-                    'density300'   : parcelDensity300})
+out = pd.DataFrame({'parcelid'     : train['parcelid'].values,
+                    'longitude'    : train['longitude'].values, 
+                    'latitude'     : train['latitude'].values,
+                    'density30000' : rankScaled30000,
+                    'density10000' : rankScaled10000,
+                    'density3000'  : rankScaled3000,
+                    'density1000'  : rankScaled1000,
+                    'density300'   : rankScaled300})
     
     
 out.to_csv('C:/documents/xq.do/Desktop/Kaggle/Zillow_House_Price/Excel files/parcel_density.csv')
