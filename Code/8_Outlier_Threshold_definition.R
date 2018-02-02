@@ -8,6 +8,8 @@ library(data.table)
 #---------------------------------------------------------------------#
 #---------------------------------------------------------------------#
 
+#test github
+
 train = setDT(readRDS("C:/Quang/Kaggle/Zillow_House_Price_Data/train.RDS"))
 test = setDT(readRDS("C:/Quang/Kaggle/Zillow_House_Price_Data/test.RDS"))
 
